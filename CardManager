@@ -1,0 +1,244 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+public class CardManager : MonoBehaviour
+{
+    [Header("ScriptReferences")]
+    public static CardManager instance;
+    PlayerStats playerStats;
+    GameManager gameManager;
+    public UIbars UIBar;
+
+    [Header("Arrays")]
+    public GameObject[] card;
+    public GameObject[] randomEvents;
+    public int[] InvestmentDay;
+    public int[] randomChance;
+    public int EventNumber;
+    public bool[] StartInvest;
+
+
+    [Header("Card Instantiation")]
+    public GameObject MasterCard;
+    private RectTransform rectTransform;
+    private Transform Parent;
+    private int randomCard;
+    private int cardAmount;
+    public bool Once = false;
+    private GameObject InstantiatedObject;
+    
+    public int MaxCards;
+    public int currentCards;
+
+    [Header("Special events")]
+    private int playerEthics;
+    public GameObject[] eventCards;
+    private RectTransform eventRT;
+    private GameObject instantiatedEvent;
+    private GameObject InstantiatedRandomObject;
+    public int randomEventNumber;
+
+    public int[] minimumEthicsTrigger;
+    public int StockShares;
+
+    public bool SpecialEventDoOnce = false;
+    public bool randomEventDoOnce = false;
+
+    private int loopNumber = 0;
+    public bool DestroyThisBeech;
+
+    private bool doEnd;
+    public TextMeshProUGUI StonksText;
+    
+
+    void Start()
+    {
+        Once = true;
+        SpecialEventDoOnce = true;
+        randomEventDoOnce = true;
+        Parent = MasterCard.transform;
+        GameObject objgam = GameObject.FindGameObjectWithTag("MasterCard");
+        rectTransform = objgam.GetComponent<RectTransform>();
+        playerStats = PlayerStats.instance;
+        gameManager = GameManager.instance;
+
+        GameObject eventOBJ = GameObject.FindGameObjectWithTag("EmptyEventCard");
+        eventRT = eventOBJ.GetComponent<RectTransform>();
+
+    }
+
+    private void Awake()
+    {
+        if (instance != null)
+        {
+            Debug.LogError("Card Manager can only be attached to the camera pls remove thx - Ellie");
+        }
+        instance = this;
+    }
+
+    void Update()
+    {
+        if (!gameManager.EndGame)
+        {
+            if (currentCards < MaxCards)
+            {
+                if (Once == true)
+                {
+                    GetRandomCard();
+                    Once = false;
+                }
+            }
+        }
+
+        if (doEnd)
+        {
+            ContinueToNextDay();
+            doEnd = false;
+        }
+
+
+        StonksText.text = "Stocks: " + StockShares.ToString() + "%";
+    }
+
+    public void GetRandomCard()
+    {
+
+        Debug.Log("one");
+        if (currentCards < MaxCards)
+        {
+            playerStats.MoveOut = false;
+            cardAmount = card.Length;
+            randomCard = Random.Range(0, cardAmount);
+            Debug.Log("Hi");
+            InstantiatedObject = (GameObject)Instantiate(card[randomCard], new Vector2(rectTransform.offsetMax.x, rectTransform.offsetMax.y), Quaternion.identity);
+            InstantiatedObject.transform.SetParent(Parent, false);
+            currentCards += 1;
+            Debug.Log(currentCards + "max is " + MaxCards);
+        }
+        else
+        {
+            StartCoroutine(RandomEvents());
+            StartCoroutine("SpecialEvents");
+
+        }
+    }
+    public void DestroyPreviousCard()
+    {
+        if (InstantiatedRandomObject != null)
+        {
+            Debug.Log("Destroy random event");
+            Destroy(InstantiatedRandomObject);
+        }
+        Debug.Log("Where tf");
+        if (InstantiatedObject != null)
+        {
+            Debug.Log("Destroy normal card");
+            Destroy(InstantiatedObject);
+            GetRandomCard();
+        }
+        if (instantiatedEvent != null)
+        {
+            Debug.Log("Destroy event");
+            Destroy(instantiatedEvent, 10);
+        }
+        
+    }
+
+    public void ContinueToNextDay()
+    {
+        gameManager.EndDay();
+    }
+
+    IEnumerator RandomEvents()
+    {
+
+        Debug.Log("ew");
+        for (int i = 0; i < randomEvents.Length; i++)
+        {           
+            playerStats.MoveOut = false;
+            int randomNumber = Random.Range(0, 100);
+            Debug.Log(randomNumber);
+            if (randomChance[EventNumber] >= randomNumber)
+            {
+                Debug.Log("Unity sucks");
+                if(InstantiatedRandomObject == null)
+                {
+                    Debug.Log("£££");
+                    InstantiatedRandomObject = (GameObject)Instantiate(randomEvents[EventNumber], new Vector2(rectTransform.offsetMax.x, rectTransform.offsetMax.y), Quaternion.identity);
+                    InstantiatedRandomObject.transform.SetParent(Parent, false);
+                    yield break;
+                }
+                else
+                {
+                    Debug.Log(loopNumber += 1);
+                }
+                
+            }
+            else
+            {
+                Debug.Log("hiiiiiiii");
+            }
+
+            if (StartInvest[EventNumber] && InvestmentDay[EventNumber] != 2)
+            {
+                InvestmentDay[EventNumber] += 1;
+                yield break;
+            }
+            else
+            {
+                if (StartInvest[EventNumber])
+                {
+                    randomChance[EventNumber] = 100;
+                    StartInvest[EventNumber] = false;
+                    InvestmentDay[EventNumber] = 0;
+                }
+            }
+            EventNumber += 1;
+        }
+        yield return null;
+     
+    }
+    IEnumerator SpecialEvents()
+    {
+        
+        while (InstantiatedRandomObject != null)
+        {
+            yield return new WaitForSeconds(1);
+        }
+
+        while (InstantiatedRandomObject == null)
+        {
+            for (int i = 0; i < eventCards.Length; i++)
+            {
+                playerEthics = playerStats.TotalEthicVal;
+                if (minimumEthicsTrigger[randomEventNumber] > playerEthics)
+                {
+                    playerStats.MoveOut = false;
+                    float randomNumber = Random.Range(0, 100);
+                    float randomChance = 100 - (playerEthics * 2);
+                    if (randomChance >= randomNumber)
+                    {
+                        instantiatedEvent = (GameObject)Instantiate(eventCards[randomEventNumber], new Vector2(eventRT.anchoredPosition.x, eventRT.anchoredPosition.y), Quaternion.identity);
+                        Debug.Log(randomEventNumber);
+                        instantiatedEvent.transform.SetParent(eventRT, false);
+                        yield break;
+                    }
+                    
+                    randomEventNumber += 1;
+
+                }
+                else
+                {
+                    Debug.Log("chhhhhhhh");
+                }
+            }
+            doEnd = true;
+            yield break;
+        }
+        
+    }
+ 
+}
