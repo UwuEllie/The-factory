@@ -1,0 +1,82 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+using TMPro;
+
+public class DialogueManager : MonoBehaviour
+{
+    public Animator anim;
+    public Button DialogueButton;
+    public TextMeshProUGUI nameText;
+    public TextMeshProUGUI DialogueText;
+    public GameObject DialogueBox;
+    public AudioClip[] dialogueAudio;
+    private AudioSource audioSource;
+    private int audioNumber;
+    GameManager gameManager;
+
+    private Queue<string> sentances;
+    // Start is called before the first frame update
+    void Start()
+    {
+        audioSource = GameObject.FindGameObjectWithTag("MainCamera").GetComponent<AudioSource>();
+        sentances = new Queue<string>();
+        gameManager = GameManager.instance;
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+
+
+    }
+    public void StartDialogue(Dialogue dialogue)
+    {
+
+        DialogueBox.SetActive(true);
+        anim.SetBool("IsOpen", true);
+        nameText.text = dialogue.name;
+        sentances.Clear();
+
+        foreach (string sentance in dialogue.sentances)
+        {
+            sentances.Enqueue(sentance);
+            
+        }
+        DisplayNextSentance();
+    }
+    public void DisplayNextSentance()
+    {
+        if (sentances.Count == 0)
+        {
+            EndDialogue();
+            return;
+
+        }
+        audioSource.Stop();
+        string sentance = sentances.Dequeue();
+        StopAllCoroutines();
+        StartCoroutine(TypeSentence(sentance));
+    }
+    IEnumerator TypeSentence(string sentance)
+    {
+        Debug.Log("This works?");
+        DialogueText.text = "";
+        audioSource.PlayOneShot(dialogueAudio[audioNumber], 4f);
+        audioNumber += 1;
+        foreach (char letter in sentance.ToCharArray())
+        {
+            DialogueText.text += letter;
+            yield return null;
+        }
+    }
+    void EndDialogue()
+    {
+        audioSource.Stop();
+        anim.SetBool("IsOpen", false);
+        audioNumber = 0;
+
+        gameManager.EndDay();
+    }
+}
