@@ -1,0 +1,68 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class PlayerStats : MonoBehaviour
+{
+    [Header("Ethics and money counters")]
+    public static PlayerStats instance;
+    public int CardEthicVal; // Stores an indiviual card ethic value to be added to the day ethic value
+    private int CardMoneyVal;
+    public int TotalEthicVal;
+    public int TotalMoneyVal;
+
+    private CardManager cardManager;
+    public bool MoveOut;
+
+    [Header("UI bars")]
+    public int maxAmount = 100;
+    private int currentMoney;
+    private int currentEthics;
+
+    public UIbars UIBar;
+
+    private void Awake()
+    {
+        if (instance != null)
+        {
+            Debug.LogError("PlayerStats can only be attached to the camera pls remove thx - Ellie");
+        }
+        instance = this; 
+    }
+
+    void Start()
+    {
+        currentMoney = 50;
+        currentEthics = 50;
+        UIBar.SetMaxAmount(currentMoney);
+
+        TotalEthicVal = 50;
+        TotalMoneyVal = 50;
+
+        cardManager = GameObject.FindGameObjectWithTag("UIManager").GetComponent<CardManager>();
+        
+    }
+
+    public void GetEthicValue(int EthicVal)
+    {
+        CardEthicVal = EthicVal;
+    }
+
+    public void GetMoneyValue(int MoneyVal)
+    {
+        CardMoneyVal = MoneyVal;
+    }
+
+    public void CardChoice()
+    {
+        MoveOut = true;
+
+        TotalEthicVal += CardEthicVal;
+        TotalMoneyVal += CardMoneyVal;
+        UIBar.SetEthics(TotalEthicVal);
+        UIBar.SetMoney(TotalMoneyVal);
+    }
+
+
+}
