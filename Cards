@@ -1,0 +1,95 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+
+public class Cards : MonoBehaviour
+{
+    public GameObject SecretEndingButton;
+
+    [Header("ScriptReferences")]
+    PlayerStats playerStats;
+    private CardManager cardManager;
+    private GameManager gameManager;
+
+    [Header("UI stuffs")]
+    public int EthicValue;
+    public int MoneyValue;
+
+    [Header("Animation")]
+    public Animator Anim;
+    public Animator eventAnim;
+    public bool MoveOut;
+    private bool MoveOutCard;
+    public bool cardButton;
+
+    [Header("Misc")]
+    public int RandomChance;
+    public int CardNumberInArray;
+
+
+    // Start is called before the first frame update
+    void Start()
+    {
+        
+        playerStats = PlayerStats.instance;
+        Anim = GetComponentInParent<Animator>();
+        eventAnim = GetComponentInParent<Animator>();
+        cardManager = GameObject.FindGameObjectWithTag("UIManager").GetComponent<CardManager>();
+        gameManager = GameManager.instance;
+        
+    }
+
+    void Update()
+    {
+        if (cardButton)
+        {
+            MoveOutCard = playerStats.MoveOut;
+            Anim.SetBool("MoveOut", MoveOutCard);
+            eventAnim.SetBool("moveOut", MoveOutCard);
+        }
+        
+    }
+
+    public void ButtonPressed()
+    {
+
+        playerStats.GetEthicValue(EthicValue);
+        playerStats.GetMoneyValue(MoneyValue);
+        playerStats.CardChoice();
+        
+    }
+    public void SecretEnding()
+    {
+        Debug.LogError("fucku");
+        gameManager.secretending = true;
+        gameManager.currentDays = gameManager.MaxDays;
+        cardManager.currentCards = cardManager.MaxCards;
+        
+        gameManager.EndDay();
+       
+    }
+
+    public void AnimEvent()
+    {
+        MoveOutCard = false;
+        cardManager.DestroyPreviousCard();
+    }
+
+    public void AddStonks()
+    {
+        cardManager.StockShares += 7;
+
+    }
+    
+    public void Invest()
+    {
+        cardManager.StartInvest[CardNumberInArray] = true;
+    }
+    public void PlayerBigBad()
+    {
+        cardManager.randomChance[CardNumberInArray] += RandomChance;
+    }
+
+    
+
+}
