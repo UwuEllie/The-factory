@@ -1,0 +1,30 @@
+using System.Collections;
+using System.Collections.Generic;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class UIbars : MonoBehaviour
+{
+    public Slider Ethicslider;
+    public Slider Moneyslider;
+    public Image fill;
+    public int maxAmount = 100;
+
+    public void SetMaxAmount(int fillAmount)
+    {
+        Ethicslider.maxValue = maxAmount;
+        Moneyslider.maxValue = maxAmount;
+        Ethicslider.value = fillAmount;
+        Moneyslider.value = fillAmount;
+    }
+
+    public void SetEthics(int fillAmount)
+    {
+        Ethicslider.value = fillAmount;
+    }
+
+    public void SetMoney(int fillAmount)
+    {
+        Moneyslider.value = fillAmount;
+    }
+}
